@@ -1,0 +1,297 @@
+<div class="container">
+  <main class="main">
+    <section class="pt-150 pb-150">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-10 m-auto">
+            <div class="row">
+              <div class="col-lg-5 mx-auto">
+                <div class="login_wrap widget-taber-content p-5 background-white border-radius-10 mb-md-5 mb-lg-0 mb-sm-5">
+                  <div class="padding_eight_all bg-white">
+                    <div class="heading_s1">
+                      <h3 class="mb-30">Login</h3>
+                      <p id="error" class="text-danger"></p>
+                    </div>
+                    <form>
+                      <div class="form-group">
+                        <input type="text" required="" id="email" name="email" placeholder="Your Email">
+                      </div>
+                      <div class="form-group">
+                        <input required="" type="password" id="password" name="password" placeholder="Password">
+                      </div>
+                      <div class="login_footer form-group">
+                      </div>
+                      <div class="form-group d-flex justify-content-center">
+                        <button type="button" onclick="validate()" class="btn btn-fill-out btn-block hover-up" name="login">Log in</button>
+                      </div>
+                      <div class="divider-text-center mt-15 mb-15">
+                        <span> or</span>
+                      </div>
+                      <div class="text-muted text-center mb-15"><a href="#" id="get-otpLogin">Login with OTP</a></div>
+                      <p class="text-muted text-center">Don't have an account? <a href="/signup">Sign up</a></p>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+
+<script>
+  function validate() {
+    const email = document.getElementById('email')
+    const password = document.getElementById('password')
+
+    const emailValue = email.value.trim()
+    const passwordValue = password.value.trim()
+
+    $.ajax({
+      url: '/login',
+      method: 'post',
+      data:
+        email: emailValue,
+        password: passwordValue,
+      },
+      success(response) {
+        if (response.status) {
+          location.href = '/'
+        } else if (response.blocked) {
+          document.getElementById('error').innerText = "You are blocked by admin"
+        } else {
+          document.getElementById('error').innerText = "Email or Password is incorrect"
+
+        }
+
+      }
+    })
+  }
+</script>
+
+
+
+
+<!--get otp login modal form-->
+<div class="modal fade" id="otp-login" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div id="content-modal" class="modal-content">
+      <div id="verify-header" class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">OTP Login</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div id="otp-login-modal" class="modal-body">
+        <form >
+          <div class="mb-3">
+            <label for="Mobile Number" class="form-label">Mobile Number</label>
+            <input type="number" class="form-control" name="mobileNumber" id="mobileNumber" required>
+            <small id="err" class="text-danger"></small>
+          </div>
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary" id="send-otp">Send OTP</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  
+  
+  $('#get-otpLogin').click(function() {
+
+    $('#otp-login').modal('show');
+
+
+  });
+
+  // Hide modal on close button or background click
+  $('.close, .modal').click(function() {
+
+    $('.modal').hide();
+  });
+  $(document).ready(function() {
+  // Prevent modal from closing on modal content click
+  $('.modal-content').click(function(e) {
+    e.stopPropagation();
+  });
+
+  $('#otp-login').on('shown.bs.modal', function() {
+    $('#send-otp').click(function(e) {
+      e.preventDefault()
+      const mobileNumber = $('#mobileNumber').val().trim();
+      const error = document.getElementById('err');
+      error.textContent = '';
+
+      if (mobileNumber === '') {
+        error.textContent = 'Mobile number is required';
+      } else {
+        $.ajax({
+          url: '/otp-login',
+          method: 'post',
+          data: {
+            mobileNumber: mobileNumber
+          },
+          success: function(response) {
+            console.log(response, '-----');
+            if (!response.error) {
+              appendVerifyForm()
+              //setTimeout(appendVerifyForm(), 5000);
+            } else {
+              Swal.fire({
+                title: response.message,
+                icon: "error",
+                button: "OK",
+                timer: 5000
+              }).then(() => {
+                location.reload();
+              })
+            }
+          }
+        });
+      }
+    });
+  });
+
+  $('#otp-login form').submit(function(e) {
+    e.preventDefault();
+    $('#send-otp').click();
+  });
+});    
+
+
+
+  
+
+
+
+  function verifyOtp() {
+
+    const otp = $('#otp').val();
+    $.ajax({
+      url: '/otp-verify',
+      type: 'post',
+      data: {
+        otp: otp
+      }
+    }).done(res => {
+      location.href = '/'
+    }).fail(err => {
+
+    })
+
+
+  } 
+
+
+  
+  function appendVerifyForm() {
+  $('#otp-login-modal').remove()
+  $('#verify-header').remove()
+
+  $(` <div class="modal-header">
+      <h5 class="modal-title" id="exampleModalLabel">Verify OTP </h5>
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+    <div class="modal-body">
+      <form id="otp-verify">
+        <div class="mb-3">
+          <label for="Mobile Number" class="form-label">Verify Code</label>
+          <input id="otp" type="number" class="form-control" name="otp" id="otp" required>
+        </div>
+        <div class="d-grid gap-2">
+          <button type="button" onclick="verifyOtp()" class="btn btn-primary" id="send-otp" >Send OTP</button>
+        </div>
+      </form>
+    </div>`).appendTo('#content-modal')
+
+  let timer = 30; // Set the timer in seconds
+  let countDown; // Declare the countdown variable
+  const timerEl = $('<small class="text-danger">Time remaining: 30 seconds</small>').appendTo('#content-modal');
+
+  // Countdown function
+  const startCountDown = () => {
+    countDown = setInterval(() => {
+      timer--;
+      timerEl.text(`Time remaining: ${timer} seconds`);
+      if (timer === 0) {
+        clearInterval(countDown);
+        timerEl.text('Time up! Please try again.');
+        $('#send-otp').attr('disabled', 'disabled');
+        $('#resend-otp').removeAttr('disabled');
+      }
+    }, 1000);
+  };
+  
+  startCountDown(); // Start the countdown initially
+
+
+  
+  // Resend OTP button
+  $('<button type="button" class="btn btn-link btn-sm" id="resend-otp" disabled>Resend OTP</button>')
+    .appendTo('#content-modal')
+    .click(() => {
+      $('#resend-otp').attr('disabled', 'disabled');
+      $('#send-otp').removeAttr('disabled');
+      clearInterval(countDown);
+      timer = 30;
+      timerEl.text(`Time remaining: ${timer} seconds`);
+      startCountDown(); // Start the countdown again
+      // TODO: add code to resend the OTP using Twilio
+      $.ajax({
+      url: '/resend-otp',
+      method: 'post',
+      
+      success(response) {
+       // console.log(response);
+        
+      },
+      error(jqXHR, textStatus, errorThrown) {
+        console.error(textStatus, errorThrown);
+        // Handle the error
+      }
+    });
+});
+
+} 
+
+
+
+
+
+</script>
+
+
+
+
+
+<style>
+  /* Position modal in the center of the screen */
+  .modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    overflow: auto;
+  }
+
+  /* Add overlay to the background */
+  .modal::before {
+    content: "";
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+  }
+</style>

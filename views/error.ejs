@@ -1,0 +1,33 @@
+
+
+
+<% if(aadmin === true) { %>
+
+  <div style="display: grid; place-items: center; height: 100%;">
+    <h1>404 <br>Page Not Found <br>  <button id="homeBtn" class="btn btn-primary">Dashboard</button> </h1>
+  
+  </div>
+  
+  <script>
+    document.getElementById('homeBtn').addEventListener('click', function() {
+      window.location.href = '/admin';
+    });
+  </script>
+
+  <% } else if(aadmin === false)  { %>
+
+
+
+    <div style="display: grid; place-items: center; height: 100%;">
+      <h1>404 <br>Page Not Found <br>  <button id="hai" class="btn btn-primary">Home</button> </h1>
+    
+    </div>
+    
+    <script>
+      document.getElementById('hai').addEventListener('click', function() {
+        window.location.href = '/';
+      });
+    </script>
+
+
+  <% } %>
